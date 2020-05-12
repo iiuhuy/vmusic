@@ -5,6 +5,8 @@ import store from './store'
 import fastclick from 'fastclick'
 import VueLazyload from 'vue-lazyload'
 
+// import 'common/stylus/index.scss'
+
 Vue.config.productionTip = false
 
 Vue.use(VueLazyload, {
