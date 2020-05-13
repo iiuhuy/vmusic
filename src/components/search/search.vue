@@ -38,7 +38,7 @@
 <script>
 import Scroll from 'base/scroll/scroll'
 import SearchBox from 'base/search-box/search-box'
-import Suggest from 'cpnts/suggest/suggest'
+import Suggest from 'components/suggest/suggest'
 import Confirm from 'base/confirm/confirm'
 import SearchList from 'base/search-list/search-list'
 import {searchMixin, playlistMixin} from 'common/js/mixin'

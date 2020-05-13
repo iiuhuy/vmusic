@@ -1,13 +1,17 @@
 <template>
   <div class="player" v-show="playlist.length > 0">
-    <transition name="normal" >
-      <div class="normal-player" v-show="fullScreen" @touchstart.once="firstPlay">
+    <transition name="normal">
+      <div
+        class="normal-player"
+        v-show="fullScreen"
+        @touchstart.once="firstPlay"
+      >
         <div class="background">
           <!-- <transition name="filterR">
           <div class="filterR" v-show="currentShow === 'lyric'"></div>
           </transition> -->
           <div class="filter"></div>
-          <img :src="currentSong.image" width="100%" height="100%">
+          <img :src="currentSong.image" width="100%" height="100%" />
         </div>
         <div class="top">
           <div class="back" @click="back">
@@ -20,49 +24,73 @@
           <transition name="middleL">
             <div class="middle-l" v-show="currentShow === 'cd'">
               <div class="cd-wrapper">
-                <div class="cd" :class="cdCls" >
-                  <img :src="currentSong.image" class="image">
+                <div class="cd" :class="cdCls">
+                  <img :src="currentSong.image" class="image" />
                 </div>
               </div>
             </div>
           </transition>
           <transition name="middleR">
-            <scroll class="middle-r" ref="lyricList" v-show="currentShow === 'lyric'" :data="currentLyric && currentLyric.lines">
+            <scroll
+              class="middle-r"
+              ref="lyricList"
+              v-show="currentShow === 'lyric'"
+              :data="currentLyric && currentLyric.lines"
+            >
               <div class="lyric-wrapper">
                 <div class="currentLyric" v-if="currentLyric">
-                  <p ref="lyricLine" class="text" :class="{'current': currentLineNum === index}"
-                    v-for="(line, index) in currentLyric.lines" :key="line.key">
-                    {{line.txt}}
+                  <p
+                    ref="lyricLine"
+                    class="text"
+                    :class="{ current: currentLineNum === index }"
+                    v-for="(line, index) in currentLyric.lines"
+                    :key="line.key"
+                  >
+                    {{ line.txt }}
                   </p>
                 </div>
-                  <p class="no-lyric" v-if="currentLyric === null">{{upDatecurrentLyric}}</p>
+                <p class="no-lyric" v-if="currentLyric === null">
+                  {{ upDatecurrentLyric }}
+                </p>
               </div>
             </scroll>
           </transition>
         </div>
         <div class="bottom">
           <div class="progress-wrapper">
-            <span class="time time-l">{{format(currentTime)}}</span>
+            <span class="time time-l">{{ format(currentTime) }}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent" @percentChangeEnd="percentChangeEnd" @percentChange="percentChange"></progress-bar>
+              <progress-bar
+                :percent="percent"
+                @percentChangeEnd="percentChangeEnd"
+                @percentChange="percentChange"
+              ></progress-bar>
             </div>
-            <span class="time time-r">{{format(duration)}}</span>
+            <span class="time time-r">{{ format(duration) }}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left" >
-              <i class="iconfont mode" :class="iconMode" @click="changeMode"></i>
+            <div class="icon i-left">
+              <i
+                class="iconfont mode"
+                :class="iconMode"
+                @click="changeMode"
+              ></i>
             </div>
-            <div class="icon i-left" >
+            <div class="icon i-left">
               <i class="iconfont icon-prev" @click="prev"></i>
             </div>
-            <div class="icon i-center" >
+            <div class="icon i-center">
               <i class="iconfont" @click="togglePlaying" :class="playIcon"></i>
             </div>
-            <div class="icon i-right" >
+            <div class="icon i-right">
               <i class="iconfont icon-test" @click="next"></i>
             </div>
             <div class="icon i-right">
-              <i class="iconfont"  @click="toggleFavorite(currentSong)" :class="getFavoriteIcon(currentSong)"></i>
+              <i
+                class="iconfont"
+                @click="toggleFavorite(currentSong)"
+                :class="getFavoriteIcon(currentSong)"
+              ></i>
             </div>
           </div>
         </div>
@@ -71,7 +99,7 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click.stop="open">
         <div class="icon">
-          <img :class="cdCls"  :src="currentSong.image" width="40" height="40">
+          <img :class="cdCls" :src="currentSong.image" width="40" height="40" />
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
@@ -89,26 +117,34 @@
       </div>
     </transition>
     <playlist @stopMusic="stopMusic" ref="playlist"></playlist>
-    <audio id="music-audio" ref="audio" @ended="end" autoplay @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
+    <audio
+      id="music-audio"
+      ref="audio"
+      @ended="end"
+      autoplay
+      @canplay="ready"
+      @error="error"
+      @timeupdate="updateTime"
+    ></audio>
   </div>
 </template>
 
 <script>
-import ProgressCircle from 'base/progress-circle/progress-circle'
-import ProgressBar from 'base/progress-bar/progress-bar'
-import Lyric from 'lyric-parser'
-import Scroll from 'base/scroll/scroll'
-import Playlist from 'cpnts/playlist/playlist'
-import {mapGetters, mapMutations, mapActions} from 'vuex'
-import {getSong, getLyric} from 'api/song'
-import {playMode} from 'common/js/config'
-import {shuffle} from 'common/js/utl'
+import ProgressCircle from "base/progress-circle/progress-circle";
+import ProgressBar from "base/progress-bar/progress-bar";
+import Lyric from "lyric-parser";
+import Scroll from "base/scroll/scroll";
+import Playlist from "components/playlist/playlist";
+import { mapGetters, mapMutations, mapActions } from "vuex";
+import { getSong, getLyric } from "api/song";
+import { playMode } from "common/js/config";
+import { shuffle } from "common/js/utl";
 
 export default {
-  data () {
+  data() {
     return {
       // id: '',
-      url: '',
+      url: "",
       songReady: false,
       currentTime: 0,
       duration: 0,
@@ -116,67 +152,67 @@ export default {
       radius: 32,
       currentLyric: null,
       currentLineNum: 0,
-      currentShow: 'cd',
-      playingLyric: '',
+      currentShow: "cd",
+      playingLyric: "",
       noLyric: false
-    }
+    };
   },
-  created () {
-    this.move = false
+  created() {
+    this.move = false;
   },
   computed: {
-    iconMode () {
+    iconMode() {
       if (this.mode === playMode.sequence) {
-        return 'icon-next'
+        return "icon-next";
       } else if (this.mode === playMode.loop) {
-        return 'icon-loop'
+        return "icon-loop";
       } else {
-        return 'icon-random'
+        return "icon-random";
       }
     },
-    cdCls () {
-      return this.playing ? 'play' : 'play pause'
+    cdCls() {
+      return this.playing ? "play" : "play pause";
     },
-    miniIcon () {
-      return this.playing ? 'fa-stop' : 'fa-play'
+    miniIcon() {
+      return this.playing ? "fa-stop" : "fa-play";
     },
-    playIcon () {
-      return this.playing ? 'icon-stop' : 'icon-bofangicon'
+    playIcon() {
+      return this.playing ? "icon-stop" : "icon-bofangicon";
     },
-    upDatecurrentLyric () {
+    upDatecurrentLyric() {
       if (this.noLyric) {
-        return '暂无歌词'
+        return "暂无歌词";
       }
       if (!this.noLyric) {
-        return '歌词加载中'
+        return "歌词加载中";
       }
     },
     ...mapGetters([
-      'playlist',
-      'fullScreen',
-      'currentSong',
-      'playing',
-      'currentIndex',
-      'mode',
-      'sequenceList',
-      'favoriteList'
+      "playlist",
+      "fullScreen",
+      "currentSong",
+      "playing",
+      "currentIndex",
+      "mode",
+      "sequenceList",
+      "favoriteList"
     ])
   },
   watch: {
-    currentSong (newVal, oldVal) {
+    currentSong(newVal, oldVal) {
       if (!newVal.id) {
-        return
+        return;
       }
       if (newVal.id === oldVal.id) {
-        return
+        return;
       }
-      this.$refs.audio.pause()
-      this.$refs.audio.currentTime = 0
-      this._getSong(newVal.id)
+      this.$refs.audio.pause();
+      this.$refs.audio.currentTime = 0;
+      this._getSong(newVal.id);
     },
-    url (newUrl) {
-      this._getLyric(this.currentSong.id)
-      this.$refs.audio.src = newUrl
+    url(newUrl) {
+      this._getLyric(this.currentSong.id);
+      this.$refs.audio.src = newUrl;
       // let play = setInterval(() => {
       //   if (this.songReady) {
       //     this.$refs.audio.play()
@@ -185,227 +221,225 @@ export default {
       //   console.log('play')
       // }, 20)
       let stop = setInterval(() => {
-        this.duration = this.$refs.audio.duration
+        this.duration = this.$refs.audio.duration;
         if (this.duration) {
-          clearInterval(stop)
+          clearInterval(stop);
         }
-      }, 150)
-      this.setPlayingState(true)
+      }, 150);
+      this.setPlayingState(true);
     },
-    currentTime () {
-      this.percent = this.currentTime / this.duration
+    currentTime() {
+      this.percent = this.currentTime / this.duration;
     }
   },
   methods: {
-    firstPlay () {
-      console.log('firstPlay')
-      this.$refs.audio.play()
+    firstPlay() {
+      console.log("firstPlay");
+      this.$refs.audio.play();
     },
-    stopMusic () {
+    stopMusic() {
       // 删除最后一首的时候暂停音乐
-      this.$refs.audio.pause()
-      console.log('删除最后一首的时候暂停音乐')
+      this.$refs.audio.pause();
+      console.log("删除最后一首的时候暂停音乐");
     },
-    showPlaylist () {
-      this.$refs.playlist.show()
+    showPlaylist() {
+      this.$refs.playlist.show();
     },
-    changeMiddle () {
-      if (this.currentShow === 'cd') {
-        this.currentShow = 'lyric'
+    changeMiddle() {
+      if (this.currentShow === "cd") {
+        this.currentShow = "lyric";
       } else {
-        this.currentShow = 'cd'
+        this.currentShow = "cd";
       }
       // console.log(this.currentShow)
     },
-    getFavoriteIcon (song) {
+    getFavoriteIcon(song) {
       if (this.isFavorite(song)) {
-        return 'icon-like'
+        return "icon-like";
       }
-      return 'icon-dislike'
+      return "icon-dislike";
     },
-    toggleFavorite (song) {
+    toggleFavorite(song) {
       if (this.isFavorite(song)) {
-        this.deleteFavoriteList(song)
+        this.deleteFavoriteList(song);
       } else {
-        this.saveFavoriteList(song)
+        this.saveFavoriteList(song);
       }
     },
-    isFavorite (song) {
-      const index = this.favoriteList.findIndex((item) => {
-        return item.id === song.id
-      })
-      return index > -1
+    isFavorite(song) {
+      const index = this.favoriteList.findIndex(item => {
+        return item.id === song.id;
+      });
+      return index > -1;
     },
-    changeMode () {
-      const mode = (this.mode + 1) % 3
-      this.setPlayMode(mode)
-      let list = null
+    changeMode() {
+      const mode = (this.mode + 1) % 3;
+      this.setPlayMode(mode);
+      let list = null;
       if (mode === playMode.random) {
-        list = shuffle(this.sequenceList)
+        list = shuffle(this.sequenceList);
       } else {
-        list = this.sequenceList
+        list = this.sequenceList;
       }
-      this._resetCurrentIndex(list)
-      this.setPlaylist(list)
+      this._resetCurrentIndex(list);
+      this.setPlaylist(list);
     },
-    _resetCurrentIndex (list) {
-      let index = list.findIndex((item) => {
-        return item.id === this.currentSong.id
-      })
-      this.setCurrentIndex(index)
+    _resetCurrentIndex(list) {
+      let index = list.findIndex(item => {
+        return item.id === this.currentSong.id;
+      });
+      this.setCurrentIndex(index);
     },
-    percentChange (percent) {
-      this.move = true
-      const currentTime = this.duration * percent
-      this.currentTime = currentTime
+    percentChange(percent) {
+      this.move = true;
+      const currentTime = this.duration * percent;
+      this.currentTime = currentTime;
       if (this.currentLyric) {
-        this.currentLyric.seek(currentTime * 1000)
+        this.currentLyric.seek(currentTime * 1000);
       }
     },
-    percentChangeEnd (percent) {
-      this.move = false
-      const currentTime = this.duration * percent
-      this.$refs.audio.currentTime = currentTime
+    percentChangeEnd(percent) {
+      this.move = false;
+      const currentTime = this.duration * percent;
+      this.$refs.audio.currentTime = currentTime;
       if (!this.playing) {
-        this.$refs.audio.play()
-        this.setPlayingState(true)
+        this.$refs.audio.play();
+        this.setPlayingState(true);
       }
       if (this.currentLyric) {
-        this.currentLyric.seek(currentTime * 1000)
+        this.currentLyric.seek(currentTime * 1000);
       }
     },
-    updateTime (e) {
+    updateTime(e) {
       if (this.move) {
-        return
+        return;
       }
-      this.currentTime = e.target.currentTime
+      this.currentTime = e.target.currentTime;
     },
-    format (interval) {
-      interval = interval | 0
-      let minute = interval / 60 | 0
-      let second = interval % 60
+    format(interval) {
+      interval = interval | 0;
+      let minute = (interval / 60) | 0;
+      let second = interval % 60;
       if (second < 10) {
-        second = '0' + second
+        second = "0" + second;
       }
-      return minute + ':' + second
+      return minute + ":" + second;
     },
-    end () {
+    end() {
       if (this.mode === playMode.loop) {
-        this.loop()
+        this.loop();
       } else {
-        this.next()
+        this.next();
       }
     },
-    loop () {
-      this.$refs.audio.currentTime = 0
-      this.$refs.audio.play()
+    loop() {
+      this.$refs.audio.currentTime = 0;
+      this.$refs.audio.play();
       if (this.currentLyric) {
-        this.currentLyric.seek()
+        this.currentLyric.seek();
       }
     },
-    error () {
-      this.songReady = true
+    error() {
+      this.songReady = true;
     },
-    ready () {
-      this.songReady = true
-      this.savePlayHistory(this.currentSong)
+    ready() {
+      this.songReady = true;
+      this.savePlayHistory(this.currentSong);
     },
-    next () {
+    next() {
       if (!this.songReady) {
-        return
+        return;
       }
       if (this.playlist.length === 1) {
-        this.loop()
-        return
+        this.loop();
+        return;
       } else {
-        let index = this.currentIndex + 1
+        let index = this.currentIndex + 1;
         if (index === this.playlist.length) {
-          index = 0
+          index = 0;
         }
-        this.setCurrentIndex(index)
+        this.setCurrentIndex(index);
         // this.$refs.audio.play()
         if (!this.playing) {
-          this.togglePlaying()
+          this.togglePlaying();
         }
       }
-      this.songReady = false
+      this.songReady = false;
     },
-    prev () {
+    prev() {
       if (!this.songReady) {
-        return
+        return;
       }
-      this.songReady = false
-      let index = this.currentIndex - 1
+      this.songReady = false;
+      let index = this.currentIndex - 1;
       if (index === -1) {
-        index = this.playlist.length - 1
+        index = this.playlist.length - 1;
       }
-      this.setCurrentIndex(index)
+      this.setCurrentIndex(index);
       if (!this.playing) {
-        this.togglePlaying()
+        this.togglePlaying();
       }
-      this.songReady = false
+      this.songReady = false;
     },
-    back () {
-      this.setFullScreen(false)
-      this.currentShow = 'cd'
+    back() {
+      this.setFullScreen(false);
+      this.currentShow = "cd";
     },
-    open () {
-      this.setFullScreen(true)
+    open() {
+      this.setFullScreen(true);
     },
-    togglePlaying () {
-      const audio = this.$refs.audio
-      this.setPlayingState(!this.playing)
-      this.playing ? audio.play() : audio.pause()
+    togglePlaying() {
+      const audio = this.$refs.audio;
+      this.setPlayingState(!this.playing);
+      this.playing ? audio.play() : audio.pause();
       if (this.currentLyric) {
-        this.currentLyric.togglePlay()
+        this.currentLyric.togglePlay();
       }
     },
-    _getSong (id) {
-      getSong(id).then((res) => {
-        this.url = res.data.data[0].url
-      })
+    _getSong(id) {
+      getSong(id).then(res => {
+        this.url = res.data.data[0].url;
+      });
     },
-    _getLyric (id) {
+    _getLyric(id) {
       if (this.currentLyric) {
-        this.currentLyric.stop()
-        this.currentLyric = null
+        this.currentLyric.stop();
+        this.currentLyric = null;
       }
-      this.noLyric = false
-      getLyric(id).then((res) => {
-        this.currentLyric = new Lyric(res.data.lrc.lyric, this.handleLyric)
-        if (this.playing) {
-          this.currentLyric.play()
-          // 歌词重载以后 高亮行设置为 0
-          this.currentLineNum = 0
-          this.$refs.lyricList.scrollTo(0, 0, 1000)
-        }
-      }).catch(() => {
-        this.currentLyric = null
-        this.noLyric = true
-        this.currentLineNum = 0
-      })
+      this.noLyric = false;
+      getLyric(id)
+        .then(res => {
+          this.currentLyric = new Lyric(res.data.lrc.lyric, this.handleLyric);
+          if (this.playing) {
+            this.currentLyric.play();
+            // 歌词重载以后 高亮行设置为 0
+            this.currentLineNum = 0;
+            this.$refs.lyricList.scrollTo(0, 0, 1000);
+          }
+        })
+        .catch(() => {
+          this.currentLyric = null;
+          this.noLyric = true;
+          this.currentLineNum = 0;
+        });
     },
-    handleLyric ({lineNum, txt}) {
-      this.currentLineNum = lineNum
+    handleLyric({ lineNum, txt }) {
+      this.currentLineNum = lineNum;
       if (lineNum > 5) {
-        let lineEl = this.$refs.lyricLine[lineNum - 5]
-        this.$refs.lyricList.scrollToElement(lineEl, 1000)
+        let lineEl = this.$refs.lyricLine[lineNum - 5];
+        this.$refs.lyricList.scrollToElement(lineEl, 1000);
       } else {
-        this.$refs.lyricList.scrollTo(0, 0, 1000)
+        this.$refs.lyricList.scrollTo(0, 0, 1000);
       }
     },
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE',
-      setPlaylist: 'SET_PLAYLIST'
+      setFullScreen: "SET_FULL_SCREEN",
+      setPlayingState: "SET_PLAYING_STATE",
+      setCurrentIndex: "SET_CURRENT_INDEX",
+      setPlayMode: "SET_PLAY_MODE",
+      setPlaylist: "SET_PLAYLIST"
     }),
-    ...mapActions([
-      'saveFavoriteList',
-      'deleteFavoriteList',
-      'savePlayHistory'
-    ])
+    ...mapActions(["saveFavoriteList", "deleteFavoriteList", "savePlayHistory"])
   },
   components: {
     ProgressBar,
@@ -413,7 +447,7 @@ export default {
     Scroll,
     Playlist
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -450,11 +484,13 @@ export default {
         height: 100%;
         background: black;
         opacity: 0.4;
-        &.filterR-enter-active, &.filterR-leave-active {
-          transition: all  0.3s
+        &.filterR-enter-active,
+        &.filterR-leave-active {
+          transition: all 0.3s;
         }
-        &.filterR-leave-to, &.filterR-enter {
-          opacity: 0
+        &.filterR-leave-to,
+        &.filterR-enter {
+          opacity: 0;
         }
         &.filterR-leave {
           opacity: 0.4;
@@ -513,11 +549,13 @@ export default {
         width: 100%;
         height: 0;
         padding-top: 80%;
-        &.middleL-enter-active, &.middleL-leave-active {
-          transition: all 0.3s
+        &.middleL-enter-active,
+        &.middleL-leave-active {
+          transition: all 0.3s;
         }
-        &.middleL-enter, &.middleL-leave-to {
-          opacity: 0
+        &.middleL-enter,
+        &.middleL-leave-to {
+          opacity: 0;
         }
         .cd-wrapper {
           position: absolute;
@@ -556,10 +594,12 @@ export default {
         width: 100%;
         height: 100%;
         overflow: hidden;
-        &.middleR-enter-active, &.middleR-leave-active {
+        &.middleR-enter-active,
+        &.middleR-leave-active {
           transition: all 0.2s;
         }
-        &.middleR-enter, &.middleR-leave-to {
+        &.middleR-enter,
+        &.middleR-leave-to {
           opacity: 0;
         }
         .lyric-wrapper {
@@ -572,7 +612,7 @@ export default {
             color: $color-text-ggg;
             font-size: $font-size-medium;
             &.current {
-              color: #FFF;
+              color: #fff;
             }
           }
           .no-lyric {
@@ -646,13 +686,16 @@ export default {
         }
       }
     }
-    &.normal-enter-active, &.normal-leave-active {
+    &.normal-enter-active,
+    &.normal-leave-active {
       transition: all 0.4s;
-      .top, .bottom {
+      .top,
+      .bottom {
         transition: all 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32);
       }
     }
-    &.normal-enter, &.normal-leave-to {
+    &.normal-enter,
+    &.normal-leave-to {
       opacity: 0;
     }
   }
@@ -666,11 +709,13 @@ export default {
     width: 100%;
     height: 60px;
     background: rgba(255, 255, 255, 0.85);
-    &.mini-enter-active, &.mini-leave-active {
-      transition: all 0.4s
+    &.mini-enter-active,
+    &.mini-leave-active {
+      transition: all 0.4s;
     }
-    &.mini-enter, &.mini-leave-to {
-      opacity: 0
+    &.mini-enter,
+    &.mini-leave-to {
+      opacity: 0;
     }
     .icon {
       flex: 0 0 40px;
@@ -693,14 +738,14 @@ export default {
       flex: 1;
       overflow: hidden;
       .name {
-       margin-bottom: 2px;
-       line-height: 14px;
-       @include no-wrap();
-       font-size: $font-size-medium;
-       color: $color-text;
+        margin-bottom: 2px;
+        line-height: 14px;
+        @include no-wrap();
+        font-size: $font-size-medium;
+        color: $color-text;
       }
       .desc {
-       @include no-wrap();
+        @include no-wrap();
         font-size: $font-size-small;
         color: $color-text;
       }
@@ -709,7 +754,10 @@ export default {
       flex: 0 0 30px;
       width: 30px;
       padding: 0 10px;
-      .icon-play-mini, .icon-pause-mini, .icon-playlist, .iconfont {
+      .icon-play-mini,
+      .icon-pause-mini,
+      .icon-playlist,
+      .iconfont {
         font-size: 30px;
         color: $color-theme-d;
       }
