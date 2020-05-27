@@ -1,14 +1,13 @@
 <template>
   <div class="search-box">
-    <!-- <i class="icon-search"></i> -->
-    <input :placeholder="placeholder" v-model="query" type="text" class="box">
-    <i v-show="query" class="icon-delete" @click="clear"></i>
-    <!-- <span class="search" >{{clickInfo}}</span> -->
+    <i class="icon-search"></i>
+    <input ref="query" v-model="query" class="box" :placeholder="placeholder" />
+    <i @click="clear" v-show="query" class="icon-dismiss"></i>
   </div>
 </template>
 
-<script>
-import {debounce} from 'common/js/utl'
+<script type="text/ecmascript-6">
+import { debounce } from 'common/js/util'
 
 export default {
   props: {
@@ -19,14 +18,8 @@ export default {
   },
   data () {
     return {
-      query: '',
-      clickInfo: '搜索'
+      query: ''
     }
-  },
-  created () {
-    this.$watch('query', debounce((newQuery) => {
-      this.$emit('query', newQuery)
-    }, 300))
   },
   methods: {
     clear () {
@@ -34,49 +27,45 @@ export default {
     },
     setQuery (query) {
       this.query = query
+    },
+    blur () {
+      this.$refs.query.blur()
     }
+  },
+  created () {
+    this.$watch('query', debounce((newQuery) => {
+      this.$emit('query', newQuery)
+    }, 200))
   }
 }
 </script>
 
-<style scoped lang="scss">
-  @import "~common/scss/variable";
+<style scoped lang="stylus" rel="stylesheet/stylus">
+@import "~common/stylus/variable"
 
-.search-box {
-  // position: relative;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  height: 25px;
-  border-bottom: 1px solid rgb(235, 235, 235);
-  .icon-search {
-    font-size: 24px;
-    color: $color-text-g;
-  }
-  .box {
-    flex: 1;
-    line-height: 25px;
-    background: $color-theme;
-    color: #fff;
-    font-size: $font-size-medium;
-    border: none;
-    outline: medium;
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-  }
-  .icon-delete {
-    position: absolute;
-    right: 12px;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    border: none;
-  }
-  .search {
-    padding: 0 5px;
-    font-size: 14px;
-    color: $color-text;
-  }
-}
+.search-box
+  display: flex
+  align-items: center
+  box-sizing: border-box
+  width: 100%
+  padding: 0 6px
+  height: 40px
+  background: $color-highlight-background
+  border-radius: 6px
+  .icon-search
+    font-size: 24px
+    color: $color-background
+  .box
+    flex: 1
+    margin: 0 5px
+    line-height: 18px
+    background: $color-highlight-background
+    color: $color-text
+    font-size: $font-size-medium
+    outline: 0
+    &::placeholder
+      color: $color-text-d
+  .icon-dismiss
+    font-size: 16px
+    color: $color-background
 </style>

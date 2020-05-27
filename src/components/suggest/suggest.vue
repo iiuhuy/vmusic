@@ -1,283 +1,216 @@
 <template>
-  <div class="suggest">
-    <div class="search-suggest" v-show="!searchShow && query && songs.length > 0">
-      <p class="title" v-show="showSinger && showList">最佳匹配</p>
-      <div @click="selectItem(suggest.artists[0])" class="search-suggest-item" v-if="suggest.artists && showSinger">
-        <img :src="suggest.artists[0].img1v1Url" width="50" height="50">
-        <span>歌手：{{suggest.artists[0].name}}</span>
-      </div>
-      <div @click="selectList(suggest.playlists[0])" class="search-suggest-item" v-if="suggest.playlists && showList">
-        <img :src="suggest.playlists[0].coverImgUrl" width="50" height="50">
-        <div class="text">
-          <p>歌单：{{suggest.playlists[0].name}}</p>
-          <p class="singer">{{suggest.albums[0].artist.name}}</p>
-        </div>
-      </div>
-    </div>
-    <ul class="suggest-list" ref="suggestList" v-show="!searchShow">
-      <li @click="selectSong(item)" class="suggest-item" v-for="(item, index) in songs" :key="index">
+  <scroll
+    ref="suggest"
+    class="suggest"
+    :data="result"
+    :pullup="pullup"
+    :beforeScroll="beforeScroll"
+    @scrollToEnd="searchMore"
+    @beforeScroll="listScroll"
+  >
+    <ul class="suggest-list">
+      <li
+        @click="selectItem(item)"
+        class="suggest-item"
+        v-for="(item, index) in result"
+        :key="index"
+      >
         <div class="icon">
-          <i></i>
+          <i :class="getIconCls(item)"></i>
         </div>
         <div class="name">
-          <p class="song">{{item.name}}</p>
-          <p class="singer">{{item.singer}}</p>
+          <p class="text" v-html="getDisplayName(item)"></p>
         </div>
       </li>
-      <loading v-show="haveMore && query"></loading>
+      <loading v-show="hasMore" title=""></loading>
     </ul>
-    <div v-show="!haveMore && !songs.length && query" class="no-result-wrapper">
-      抱歉，暂无搜索结果
+    <div v-show="!hasMore && !result.length" class="no-result-wrapper">
+      <no-result title="抱歉，暂无搜索结果"></no-result>
     </div>
-  </div>
+  </scroll>
 </template>
 
-<script>
+<script type="text/ecmascript-6">
+import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
+import NoResult from 'base/no-result/no-result'
+import { search } from 'api/search'
+import { ERR_OK } from 'api/config'
+import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
+import { mapMutations, mapActions } from 'vuex'
 import Singer from 'common/js/singer'
-import {getSearchSongs, getSearchSuggest, getSongDetail} from 'api/search'
-import {createSearchSong} from 'common/js/song'
-import {mapMutations, mapActions} from 'vuex'
+
+const TYPE_SINGER = 'singer'
+const perpage = 20
 
 export default {
   props: {
-    query: {
-      type: String,
-      default: ''
-    },
     showSinger: {
       type: Boolean,
       default: true
     },
-    showList: {
-      type: Boolean,
-      default: true
+    query: {
+      type: String,
+      default: ''
     }
   },
   data () {
     return {
-      singer: {},
-      songs: [],
-      suggest: {},
-      searchShow: true,
-      page: 0,
-      update: true,
-      haveMore: true
+      page: 1,
+      pullup: true,
+      beforeScroll: true,
+      hasMore: false,
+      result: []
     }
   },
-  computed: {
-  },
   methods: {
-    selectList (item) {
-      console.log('item', item)
-      const list = {}
-      list.name = item.name
-      list.id = item.id
-      list.picUrl = item.coverImgUrl
-      list.playCount = item.playCount
-      this.$router.push({
-        path: `/search/list/${list.id}`
-      })
-      this.setMusicList(list)
-      this.$emit('select')
+    refresh () {
+      this.$refs.suggest.refresh()
     },
-    selectItem (item) {
-      const singer = new Singer({
-        id: item.id,
-        name: item.name,
-        avatar: item.img1v1Url
-      })
-      this.$router.push({
-        path: `/search/singer/${singer.id}`
-      })
-      this.setSinger(singer)
-      this.$emit('select')
-    },
-    selectSong (item) {
-      getSongDetail(item.id).then((res) => {
-        item.image = res.data.songs[0].al.picUrl
-        this.insertSong(item)
-        // console.log(item.image)
-      })
-      this.$emit('select')
-    },
-    // handlePlaylist (playlist) {
-    //   const bottom = playlist.length > 0 ? '90px' : ''
-    //   this.$refs.suggestList.style['margin-bottom'] = bottom
-    //   this.$emit('refresh')
-    // },
     search () {
-      this.searchShow = false
-      this.haveMore = true
-      getSearchSongs(this.query, this.page).then((res) => {
-        if (!res.data.result.songs) {
-          this.haveMore = false
-          return
+      this.page = 1
+      this.$refs.suggest.scrollTo(0, 0)
+      this.hasMore = true
+      search(this.query, this.page, this.showSinger, perpage).then((res) => {
+        if (res.code === ERR_OK) {
+          this._genResult(res.data).then((result) => {
+            this.result = result
+            setTimeout(() => {
+              this._checkMore(res.data)
+            }, 20)
+          })
         }
-        let list = res.data.result.songs
-        let ret = []
-        list.forEach((item) => {
-          ret.push(createSearchSong(item))
-        })
-        this.songs = ret
-        this.$emit('refresh')
-      })
-      this.page += 30
-      getSearchSuggest(this.query).then((res) => {
-        this.suggest = res.data.result
       })
     },
     searchMore () {
-      console.log('searchMore')
-      if (!this.haveMore) {
+      if (!this.hasMore) {
         return
       }
-      if (!this.songs.length) {
-        return
-      }
-      getSearchSongs(this.query, this.page).then((res) => {
-        let list = res.data.result.songs
-        if (!res.data.result.songs) {
-          this.haveMore = false
-          return
+      this.page++
+      search(this.query, this.page, this.showSinger, perpage).then((res) => {
+        if (res.code === ERR_OK) {
+          this._genResult(res.data).then((result) => {
+            this.result = this.result.concat(result)
+            setTimeout(() => {
+              this._checkMore(res.data)
+            }, 20)
+          })
         }
-        let ret = []
-        list.forEach((item) => {
-          ret.push(createSearchSong(item))
-        })
-        this.songs = this.songs.concat(ret)
-        this.$emit('refresh')
-        this.page += 30
       })
     },
+    listScroll () {
+      this.$emit('listScroll')
+    },
+    selectItem (item) {
+      if (item.type === TYPE_SINGER) {
+        const singer = new Singer({
+          id: item.singermid,
+          name: item.singername
+        })
+        this.$router.push({
+          path: `/search/${singer.id}`
+        })
+        this.setSinger(singer)
+      } else {
+        this.insertSong(item)
+      }
+      this.$emit('select', item)
+    },
+    getDisplayName (item) {
+      if (item.type === TYPE_SINGER) {
+        return item.singername
+      } else {
+        return `${item.name}-${item.singer}`
+      }
+    },
+    getIconCls (item) {
+      if (item.type === TYPE_SINGER) {
+        return 'icon-mine'
+      } else {
+        return 'icon-music'
+      }
+    },
+    _genResult (data) {
+      let ret = []
+      if (data.zhida && data.zhida.singerid && this.page === 1) {
+        ret.push({ ...data.zhida, ...{ type: TYPE_SINGER } })
+      }
+      return processSongsUrl(this._normalizeSongs(data.song.list)).then((songs) => {
+        ret = ret.concat(songs)
+        return ret
+      })
+    },
+    _normalizeSongs (list) {
+      let ret = []
+      list.forEach((musicData) => {
+        if (isValidMusic(musicData)) {
+          ret.push(createSong(musicData))
+        }
+      })
+      return ret
+    },
+    _checkMore (data) {
+      const song = data.song
+      if (!song.list.length || (song.curnum + (song.curpage - 1) * perpage) >= song.totalnum) {
+        this.hasMore = false
+      } else {
+        if (!this.$refs.suggest.scroll.hasVerticalScroll) {
+          this.searchMore()
+        }
+      }
+    },
     ...mapMutations({
-      setSinger: 'SET_SINGER',
-      setMusicList: 'SET_MUSIC_LIST'
+      setSinger: 'SET_SINGER'
     }),
     ...mapActions([
       'insertSong'
     ])
   },
   watch: {
-    query (val) {
-      if (val === '') {
-        this.suggest = {}
-        this.songs = []
-        this.haveMore = false
+    query (newQuery) {
+      if (!newQuery) {
         return
       }
-      this.suggest = {}
-      this.songs = []
-      this.searchShow = true
-      this.page = 0
-      this.haveMore = true
-      this.search()
-    },
-    songs (songs) {
+      this.search(newQuery)
     }
   },
   components: {
-    Loading
+    Scroll,
+    Loading,
+    NoResult
   }
 }
 </script>
 
-<style scoped lang="scss" >
-@import "~common/scss/variable";
-@import "~common/scss/mixin";
+<style scoped lang="stylus" rel="stylesheet/stylus">
+@import "~common/stylus/variable"
+@import "~common/stylus/mixin"
 
-.suggest {
-  height: 100%;
-  overflow: hidden;
-  .search-go {
-    font-size: $font-size-medium;
-    margin-left: 20px;
-    color: $color-theme;
-  }
-  .search-suggest {
-    .title {
-      padding-left: 20px;
-      padding-bottom: 10px;
-      color: $color-theme;
-      font-size: 11px;
-    }
-    .search-suggest-item {
-      display: flex;
-      align-items: center;
-      padding: 8px 20px;
-      border-bottom: 1px solid rgb(228, 228, 228);
-      font-size: $font-size-medium;
-      img {
-        flex: 0 0 50px;
-        padding-right: 15px;
-      }
-      .text {
-        width: 100%;
-        p {
-          padding: 3px 0;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .singer {
-          font-size: 12px;
-          color: $color-text;
-        }
-      }
-    }
-  }
-  .suggest-list {
-    padding-bottom: 30px;
-    .suggest-item {
-      display: flex;
-      padding: 3px 20px;
-      height: 50px;
-      align-items: center;
-      border-bottom: 1px solid rgb(228, 228, 228);
-      p {
-        padding: 3px 0;
-      }
-      .song {
-        font-size: $font-size-medium-x;
-        color: $color-text;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      // padding-bottom: 20px
-      }
-      .singer {
-        font-size: 12px;
-        color: $color-text-g;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-    .icon {
-      // flex: 0 0 30px
-      // width: 30px
-      [class^="icon-"] {
-        font-size: 14px;
-        color: $color-text;
-      }
-    }
-    .name {
-      flex: 1;
-      font-size: $font-size-medium;
-      color: $color-text;
-      overflow: hidden;
-      .text {
-       @include no-wrap();
-      }
-    }
-  }
-}
-.no-result-wrapper {
-  position: fixed;
-  overflow: hidden;
-  left: 50%;
-  top: 40vh;
-  transform: translatex(-50%);
-  color: $color-text;
-}
+.suggest
+  height: 100%
+  overflow: hidden
+  .suggest-list
+    padding: 0 30px
+    .suggest-item
+      display: flex
+      align-items: center
+      padding-bottom: 20px
+    .icon
+      flex: 0 0 30px
+      width: 30px
+      [class^="icon-"]
+        font-size: 14px
+        color: $color-text-d
+    .name
+      flex: 1
+      font-size: $font-size-medium
+      color: $color-text-d
+      overflow: hidden
+      .text
+        no-wrap()
+  .no-result-wrapper
+    position: absolute
+    width: 100%
+    top: 50%
+    transform: translateY(-50%)
 </style>

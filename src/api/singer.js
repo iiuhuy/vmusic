@@ -1,20 +1,36 @@
-import axios from 'axios'
-import {HOST} from 'common/js/config'
+import jsonp from "common/js/jsonp";
+import { commonParams, options } from "./config";
 
-export function getSingers () {
-  const url = HOST + '/top/artists?limit=100'
+export function getSingerList() {
+  const url = "https://c.y.qq.com/v8/fcg-bin/v8.fcg";
 
-  return axios.get(url)
+  const data = Object.assign({}, commonParams, {
+    channel: "singer",
+    page: "list",
+    key: "all_all_all",
+    pagesize: 100,
+    pagenum: 1,
+    hostUin: 0,
+    needNewCode: 0,
+    platform: "yqq"
+  });
+
+  return jsonp(url, data, options);
 }
 
-export function getSingerDetail (singerId) {
-  const url = HOST + `/artists?id=${singerId}`
+export function getSingerDetail(singerId) {
+  const url = "https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg";
 
-  return axios.get(url)
-}
+  const data = Object.assign({}, commonParams, {
+    hostUin: 0,
+    needNewCode: 0,
+    platform: "yqq",
+    order: "listen",
+    begin: 0,
+    num: 80,
+    songstatus: 1,
+    singermid: singerId
+  });
 
-export function getMusic (musicId) {
-  const url = HOST + `/music/url?id=${musicId}`
-
-  return axios.get(url)
+  return jsonp(url, data, options);
 }

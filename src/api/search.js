@@ -1,32 +1,48 @@
-import axios from 'axios'
-import {HOST} from 'common/js/config'
+import jsonp from "common/js/jsonp";
+import { commonParams, options } from "./config";
+import axios from "axios";
 
-export function getSearchSinger (name) {
-  const url = HOST + `/search?keywords=${name}&type=100`
+const debug = process.env.NODE_ENV !== "production";
 
-  return axios.get(url)
+export function getHotKey() {
+  const url = "https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg";
+
+  const data = Object.assign({}, commonParams, {
+    uin: 0,
+    needNewCode: 1,
+    platform: "h5"
+  });
+
+  return jsonp(url, data, options);
 }
 
-export function getSearchSongs (name, page) {
-  const url = HOST + `/search?keywords=${name}&offset=${page}`
+export function search(query, page, zhida, perpage) {
+  const url = debug ? "/api/search" : "http://yourdoman.com/music/api/search";
 
-  return axios.get(url)
-}
+  const data = Object.assign({}, commonParams, {
+    w: query,
+    p: page,
+    perpage,
+    n: perpage,
+    catZhida: zhida ? 1 : 0,
+    zhidaqu: 1,
+    t: 0,
+    flag: 1,
+    ie: "utf-8",
+    sem: 1,
+    aggr: 0,
+    remoteplace: "txt.mqq.all",
+    uin: 0,
+    needNewCode: 1,
+    platform: "h5",
+    format: "json"
+  });
 
-export function getSearchSuggest (name) {
-  const url = HOST + `/search/suggest?keywords=${name}`
-
-  return axios.get(url)
-}
-
-export function getSongDetail (id) {
-  const url = HOST + `/song/detail?ids=${id}`
-
-  return axios.get(url)
-}
-
-export function getSearchHot (id) {
-  const url = HOST + `/search/hot`
-
-  return axios.get(url)
+  return axios
+    .get(url, {
+      params: data
+    })
+    .then(res => {
+      return Promise.resolve(res.data);
+    });
 }

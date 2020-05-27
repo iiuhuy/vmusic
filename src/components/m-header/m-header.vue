@@ -1,57 +1,48 @@
 <template>
   <div class="m-header">
-    <h1 class="text">VMUSICJIN</h1>
-    <router-link to="/user" class="mine" tag="div">
-     <i class="iconfont icon-list"></i>
-    </router-link>
-    <router-link to="/search" class="search" tag="div">
-      <i class="iconfont icon-search"></i>
+    <div class="icon"></div>
+    <h1 class="text">VMusic</h1>
+    <router-link tag="div" class="mine" to="/user">
+      <i class="icon-mine"></i>
     </router-link>
   </div>
 </template>
 
-<script>
-export default {
-
-}
+<script type="text/ecmascript-6">
+export default {}
 </script>
 
-<style lang="scss" scoped>
-@import "~common/scss/variable.scss";
+<style scoped lang="stylus" rel="stylesheet/stylus">
+@import "~common/stylus/variable"
+@import "~common/stylus/mixin"
 
-.m-header {
-  position: relative;
-  height: 44px;
-  width: 100%;
-  text-align: center;
-  background: $color-theme;
-  .text {
-    line-height: 44px;
-    font-weight: bold;
-    color: $color-text-l;
-    letter-spacing: 3px;
-  }
-  .mine {
-    position: absolute;
-    top: -1.5px;
-    left: 0;
-    .iconfont {
-        display: block;
-        padding: 11px;
-        font-size: 22px;
-        color: $color-theme-l;
-    }
-  }
-  .search {
-    position: absolute;
-    top: 0;
-    right: 2px;
-    .iconfont {
-        display: block;
-        padding: 12px;
-        font-size: 18px;
-        color: $color-theme-l;
-    }
-  }
-}
+.m-header
+  position: relative
+  height: 44px
+  text-align: center
+  color: $color-theme
+  font-size: 0
+  .icon
+    display: inline-block
+    vertical-align: top
+    margin-top: 6px
+    width: 30px
+    height: 32px
+    margin-right: 9px
+    bg-image('logo')
+    background-size: 30px 32px
+  .text
+    display: inline-block
+    vertical-align: top
+    line-height: 44px
+    font-size: $font-size-large
+  .mine
+    position: absolute
+    top: 0
+    right: 0
+    .icon-mine
+      display: block
+      padding: 12px
+      font-size: 20px
+      color: $color-theme
 </style>

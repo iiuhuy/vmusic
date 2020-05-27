@@ -4,8 +4,12 @@
   </div>
 </template>
 
-<script>
+<script type="text/ecmascript-6">
 import BScroll from 'better-scroll'
+
+const DIRECTION_H = 'horizontal'
+const DIRECTION_V = 'vertical'
+
 export default {
   props: {
     probeType: {
@@ -14,29 +18,41 @@ export default {
     },
     click: {
       type: Boolean,
-      default: true
-    },
-    data: {
-      type: Array,
-      default: null
+      default: false
     },
     listenScroll: {
       type: Boolean,
       default: false
     },
+    data: {
+      type: Array,
+      default: null
+    },
     pullup: {
+      type: Boolean,
+      default: false
+    },
+    beforeScroll: {
       type: Boolean,
       default: false
     },
     refreshDelay: {
       type: Number,
       default: 20
+    },
+    direction: {
+      type: String,
+      default: DIRECTION_V
+    },
+    directionLockThreshold: {
+      type: Number,
+      default: 0
     }
   },
   mounted () {
     setTimeout(() => {
       this._initScroll()
-    })
+    }, 20)
   },
   methods: {
     _initScroll () {
@@ -45,15 +61,17 @@ export default {
       }
       this.scroll = new BScroll(this.$refs.wrapper, {
         probeType: this.probeType,
-        click: this.click
+        click: this.click,
+        eventPassthrough: this.direction === DIRECTION_V ? DIRECTION_H : DIRECTION_V,
+        directionLockThreshold: this.directionLockThreshold
       })
 
       if (this.listenScroll) {
-        let _this = this
         this.scroll.on('scroll', (pos) => {
-          _this.$emit('scroll', pos)
+          this.$emit('scroll', pos)
         })
       }
+
       if (this.pullup) {
         this.scroll.on('scrollEnd', () => {
           if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
@@ -61,12 +79,18 @@ export default {
           }
         })
       }
-    },
-    enable () {
-      this.scroll && this.scroll.enable()
+
+      if (this.beforeScroll) {
+        this.scroll.on('beforeScrollStart', () => {
+          this.$emit('beforeScroll')
+        })
+      }
     },
     disable () {
       this.scroll && this.scroll.disable()
+    },
+    enable () {
+      this.scroll && this.scroll.enable()
     },
     refresh () {
       this.scroll && this.scroll.refresh()
@@ -88,6 +112,4 @@ export default {
 }
 </script>
 
-<style>
-
-</style>
+<style scoped lang="stylus" rel="stylesheet/stylus"></style>

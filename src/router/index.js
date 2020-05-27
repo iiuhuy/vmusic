@@ -1,68 +1,20 @@
 import Vue from "vue";
 import Router from "vue-router";
-// import Singer from 'components/singer/singer'
-// import Recommend from 'components/recommend/recommend'
-// import Rank from 'components/rank/rank'
-// import Search from 'components/search/search'
-// import MusicList from 'components/music-list/music-list'
-// import SingerDetail from 'components/singer-detail/singer-detail'
-// import RankDetail from 'components/rank-detail/rank-detail'
-// import User from 'components/user/user'
 
 Vue.use(Router);
 
-const Recommend = resolve => {
-  import("components/recommend/recommend").then(module => {
-    resolve(module);
-  });
-};
-
-const Singer = resolve => {
-  import("components/singer/singer").then(module => {
-    resolve(module);
-  });
-};
-
-const Rank = resolve => {
-  import("components/rank/rank").then(module => {
-    resolve(module);
-  });
-};
-
-const Search = resolve => {
-  import("components/search/search").then(module => {
-    resolve(module);
-  });
-};
-
-const SingerDetail = resolve => {
-  import("components/singer-detail/singer-detail").then(module => {
-    resolve(module);
-  });
-};
-
-const MusicList = resolve => {
-  import("components/music-list/music-list").then(module => {
-    resolve(module);
-  });
-};
-
-const RankDetail = resolve => {
-  import("components/rank-detail/rank-detail").then(module => {
-    resolve(module);
-  });
-};
-
-const User = resolve => {
-  import("components/user/user").then(module => {
-    resolve(module);
-  });
-};
+const Recommend = () => import("components/recommend/recommend");
+const Singer = () => import("components/singer/singer");
+const Rank = () => import("components/rank/rank");
+const Search = () => import("components/search/search");
+const SingerDetail = () => import("components/singer-detail/singer-detail");
+const Disc = () => import("components/disc/disc");
+const TopList = () => import("components/top-list/top-list");
+const UserCenter = () => import("components/user-center/user-center");
 
 export default new Router({
   routes: [
     {
-      // 默认跳转到 recommend
       path: "/",
       redirect: "/recommend"
     },
@@ -72,7 +24,7 @@ export default new Router({
       children: [
         {
           path: ":id",
-          component: MusicList
+          component: Disc
         }
       ]
     },
@@ -92,7 +44,7 @@ export default new Router({
       children: [
         {
           path: ":id",
-          component: RankDetail
+          component: TopList
         }
       ]
     },
@@ -101,18 +53,14 @@ export default new Router({
       component: Search,
       children: [
         {
-          path: "singer/:id",
+          path: ":id",
           component: SingerDetail
-        },
-        {
-          path: "list/:id",
-          component: MusicList
         }
       ]
     },
     {
       path: "/user",
-      component: User
+      component: UserCenter
     }
   ]
 });
